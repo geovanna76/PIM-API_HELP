@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema de Estudo HELP</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Ícones -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+</head>
+
+<body>
+
+    <!-- =========================================================
+         LOGIN
+    ========================================================== -->
+
+    <section id="login-section" class="login-page">
+
+        <div class="login-container">
+
+            <div class="login-brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+
+                <h1>SISTEMA DE ESTUDO <span>HELP</span></h1>
+
+                <p>
+                    Plataforma de gerenciamento acadêmico
+                </p>
+            </div>
+
+            <form id="login-form" class="login-form">
+
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope"></i>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Digite seu e-mail"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Digite sua senha"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            id="toggle-password"
+                            class="password-toggle"
+                            aria-label="Mostrar senha"
+                        >
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="login-error" class="login-error"></div>
+
+                <button type="submit" class="btn-login">
+                    <span>Entrar</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+            </form>
+
+            <p class="login-footer">
+                Acesso restrito à administração
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================================
+         SISTEMA
+    ========================================================== -->
+
+    <div id="app" class="app hidden">
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-header">
+
+                <div class="sidebar-logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+
+                <div class="sidebar-brand">
+                    <strong>HELP</strong>
+                    <span>Sistema de Estudo</span>
+                </div>
+
+            </div>
+
+
+            <nav class="sidebar-nav">
+
+                <p class="nav-title">MENU PRINCIPAL</p>
+
+                <button
+                    class="nav-item active"
+                    data-section="dashboard"
+                >
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </button>
+
+                <button
+                    class="nav-item"
+                    data-section="materias"
+                >
+                    <i class="fa-solid fa-book"></i>
+                    <span>Matérias</span>
+                </button>
+
+                <button
+                    class="nav-item"
+                    data-section="professores"
+                >
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Professores</span>
+                </button>
+
+                <button
+                    class="nav-item"
+                    data-section="alunos"
+                >
+                    <i class="fa-solid fa-users"></i>
+                    <span>Alunos</span>
+                </button>
+
+            </nav>
+
+
+            <div class="sidebar-bottom">
+
+                <button id="logout-button" class="nav-item logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Sair</span>
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =====================================================
+             MAIN CONTENT
+        ====================================================== -->
+
+        <main class="main-content">
+
+            <!-- HEADER -->
+
+            <header class="top-header">
+
+                <div class="header-left">
+
+                    <button
+                        id="sidebar-toggle"
+                        class="menu-toggle"
+                        aria-label="Abrir menu"
+                    >
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+
+                    <div>
+                        <p class="header-greeting">Olá, administrador</p>
+                        <h2 id="page-title">Dashboard</h2>
+                    </div>
+
+                </div>
+
+
+                <div class="header-right">
+
+                    <button
+                        class="notification-button"
+                        aria-label="Notificações"
+                    >
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-dot"></span>
+                    </button>
+
+                    <div class="admin-profile">
+
+                        <div class="admin-avatar">
+                            A
+                        </div>
+
+                        <div class="admin-info">
+                            <strong id="admin-name">Administrador</strong>
+                            <span>Administrador</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- =================================================
+                 CONTENT
+            ================================================== -->
+
+            <div class="content-container">
+
+
+                <!-- =================================================
+                     DASHBOARD
+                ================================================== -->
+
+                <section
+                    id="dashboard-section"
+                    class="content-section active"
+                >
+
+                    <div class="section-heading">
+
+                        <div>
+                            <span class="section-label">VISÃO GERAL</span>
+                            <h1>Dashboard</h1>
+                            <p>
+                                Acompanhe os principais indicadores acadêmicos.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <!-- INDICADORES -->
+
+                    <div class="stats-grid">
+
+                        <article class="stat-card">
+
+                            <div class="stat-icon students">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+
+                            <div class="stat-info">
+                                <span>Total de alunos</span>
+                                <strong id="total-alunos">--</strong>
+                            </div>
+
+                        </article>
+
+
+                        <article class="stat-card">
+
+                            <div class="stat-icon teachers">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </div>
+
+                            <div class="stat-info">
+                                <span>Total de professores</span>
+                                <strong id="total-professores">--</strong>
+                            </div>
+
+                        </article>
+
+
+                        <article class="stat-card">
+
+                            <div class="stat-icon subjects">
+                                <i class="fa-solid fa-book"></i>
+                            </div>
+
+                            <div class="stat-info">
+                                <span>Total de matérias</span>
+                                <strong id="total-materias">--</strong>
+                            </div>
+
+                        </article>
+
+
+                        <article class="stat-card">
+
+                            <div class="stat-icon average">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+
+                            <div class="stat-info">
+                                <span>Média geral</span>
+                                <strong id="media-geral">--</strong>
+                            </div>
+
+                        </article>
+
+
+                        <article class="stat-card">
+
+                            <div class="stat-icon frequency">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+
+                            <div class="stat-info">
+                                <span>Frequência geral</span>
+                                <strong id="frequencia-geral">--</strong>
+                            </div>
+
+                        </article>
+
+                    </div>
+
+
+                    <!-- OCUPAÇÃO DAS SALAS -->
+
+                    <div class="dashboard-grid">
+
+                        <article class="dashboard-card room-planning">
+
+                            <div class="card-header">
+
+                                <div>
+                                    <span class="section-label">
+                                        PLANEJAMENTO
+                                    </span>
+
+                                    <h3>Ocupação das salas</h3>
+                                </div>
+
+                                <i class="fa-solid fa-building"></i>
+
+                            </div>
+
+
+                            <div
+                                id="room-planning-list"
+                                class="room-list"
+                            >
+                                <!-- Dados inseridos pelo JS -->
+                            </div>
+
+                        </article>
+
+
+                        <article class="dashboard-card">
+
+                            <div class="card-header">
+
+                                <div>
+                                    <span class="section-label">
+                                        RESUMO
+                                    </span>
+
+                                    <h3>Status do sistema</h3>
+                                </div>
+
+                                <i class="fa-solid fa-server"></i>
+
+                            </div>
+
+
+                            <div class="system-status">
+
+                                <div class="status-item">
+
+                                    <span class="status-indicator online"></span>
+
+                                    <div>
+                                        <strong>API</strong>
+                                        <small>Operacional</small>
+                                    </div>
+
+                                </div>
+
+
+                                <div class="status-item">
+
+                                    <span class="status-indicator online"></span>
+
+                                    <div>
+                                        <strong>Banco de dados</strong>
+                                        <small>Conectado</small>
+                                    </div>
+
+                                </div>
+
+
+                                <div class="status-item">
+
+                                    <span class="status-indicator online"></span>
+
+                                    <div>
+                                        <strong>Sistema</strong>
+                                        <small>Operacional</small>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     MATÉRIAS
+                ================================================== -->
+
+                <section
+                    id="materias-section"
+                    class="content-section"
+                >
+
+                    <div class="section-heading">
+
+                        <div>
+                            <span class="section-label">ACADÊMICO</span>
+
+                            <h1>Matérias</h1>
+
+                            <p>
+                                Visualize as matérias cadastradas no sistema.
+                            </p>
+                        </div>
+
+                        <div class="result-count">
+                            <span id="materias-count">0</span>
+                            matérias
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="materias-grid"
+                        class="cards-grid"
+                    >
+                        <!-- Cards inseridos pelo JS -->
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     PROFESSORES
+                ================================================== -->
+
+                <section
+                    id="professores-section"
+                    class="content-section"
+                >
+
+                    <div class="section-heading">
+
+                        <div>
+                            <span class="section-label">ACADÊMICO</span>
+
+                            <h1>Professores</h1>
+
+                            <p>
+                                Visualize os professores cadastrados.
+                            </p>
+                        </div>
+
+                        <div class="result-count">
+                            <span id="professores-count">0</span>
+                            professores
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="professores-grid"
+                        class="cards-grid"
+                    >
+                        <!-- Cards inseridos pelo JS -->
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     ALUNOS
+                ================================================== -->
+
+                <section
+                    id="alunos-section"
+                    class="content-section"
+                >
+
+                    <div class="section-heading">
+
+                        <div>
+                            <span class="section-label">ACADÊMICO</span>
+
+                            <h1>Alunos</h1>
+
+                            <p>
+                                Visualize os alunos cadastrados no sistema.
+                            </p>
+                        </div>
+
+                        <div class="result-count">
+                            <span id="alunos-count">0</span>
+                            alunos
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="alunos-grid"
+                        class="cards-grid"
+                    >
+                        <!-- Cards inseridos pelo JS -->
+                    </div>
+
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>

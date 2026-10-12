@@ -1,0 +1,6 @@
+@SistemaEstudoHelpAPI_HostAddress = http://localhost:5145
+
+GET {{SistemaEstudoHelpAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

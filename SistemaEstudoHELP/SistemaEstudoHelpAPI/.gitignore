@@ -1,0 +1,5 @@
+
+# Credenciais locais do HELP
+.env
+.env.*
+!.env.example

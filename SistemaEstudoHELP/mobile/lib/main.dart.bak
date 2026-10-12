@@ -1,0 +1,394 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+
+const apiBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://localhost:5026',
+);
+
+const secureStorage = FlutterSecureStorage();
+
+void main() {
+  runApp(const HelpApp());
+}
+
+class HelpApp extends StatelessWidget {
+  const HelpApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Sistema de Estudo HELP',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF173B70),
+          primary: const Color(0xFF173B70),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF4F6FA),
+      ),
+      home: const LoginPage(),
+    );
+  }
+}
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
+
+  bool _carregando = false;
+  bool _mostrarSenha = false;
+  String? _erro;
+
+  Future<void> _entrar() async {
+    FocusScope.of(context).unfocus();
+
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _carregando = true;
+      _erro = null;
+    });
+
+    try {
+      final resposta = await http
+          .post(
+            Uri.parse('$apiBaseUrl/api/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': _emailController.text.trim(),
+              'senha': _senhaController.text,
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
+
+      final dados = jsonDecode(resposta.body) as Map<String, dynamic>;
+
+      if (resposta.statusCode == 200) {
+        final token = dados['token'] as String?;
+        final administrador =
+            dados['administrador'] as Map<String, dynamic>?;
+
+        if (token == null || administrador == null) {
+          throw const FormatException('Resposta de login inválida.');
+        }
+
+        await secureStorage.write(key: 'help_token', value: token);
+        await secureStorage.write(
+          key: 'help_token_expira',
+          value: dados['expiraEm']?.toString() ?? '',
+        );
+        await secureStorage.write(
+          key: 'help_admin_nome',
+          value: administrador['nome']?.toString() ?? '',
+        );
+        await secureStorage.write(
+          key: 'help_admin_email',
+          value: administrador['email']?.toString() ?? '',
+        );
+
+        if (!mounted) return;
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => HomePage(
+              nome: administrador['nome']?.toString() ?? 'Administrador',
+              email: administrador['email']?.toString() ?? '',
+            ),
+          ),
+        );
+      } else {
+        setState(() {
+          _erro = dados['mensagem']?.toString() ??
+              'Não foi possível realizar o login.';
+        });
+      }
+    } on FormatException {
+      setState(() {
+        _erro = 'A API retornou uma resposta inválida.';
+      });
+    } catch (_) {
+      setState(() {
+        _erro = 'Falha na conexão. Verifique a API e tente novamente.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _carregando = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _senhaController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Card(
+                color: Colors.white,
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Icon(
+                          Icons.school_rounded,
+                          color: Color(0xFF173B70),
+                          size: 64,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'HELP',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2,
+                            color: Color(0xFF173B70),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Sistema de Estudo',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Acesso restrito à administração',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.black54),
+                        ),
+                        const SizedBox(height: 30),
+                        const Text(
+                          'E-mail',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          autocorrect: false,
+                          decoration: const InputDecoration(
+                            hintText: 'admin@exemplo.com',
+                            prefixIcon: Icon(Icons.email_outlined),
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (valor) {
+                            if (valor == null || valor.trim().isEmpty) {
+                              return 'Informe seu e-mail.';
+                            }
+                            if (!valor.contains('@') ||
+                                !valor.contains('.')) {
+                              return 'Informe um e-mail válido.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Senha',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _senhaController,
+                          obscureText: !_mostrarSenha,
+                          decoration: InputDecoration(
+                            hintText: 'Digite sua senha',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            border: const OutlineInputBorder(),
+                            suffixIcon: IconButton(
+                              onPressed: () => setState(
+                                () => _mostrarSenha = !_mostrarSenha,
+                              ),
+                              icon: Icon(
+                                _mostrarSenha
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                            ),
+                          ),
+                          validator: (valor) {
+                            if (valor == null || valor.isEmpty) {
+                              return 'Informe sua senha.';
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (_) => _entrar(),
+                        ),
+                        if (_erro != null) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            _erro!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 52,
+                          child: FilledButton(
+                            onPressed: _carregando ? null : _entrar,
+                            child: _carregando
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Entrar',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Acesso exclusivo para administradores.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.black54,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  final String nome;
+  final String email;
+
+  const HomePage({
+    super.key,
+    required this.nome,
+    required this.email,
+  });
+
+  Future<void> _sair(BuildContext context) async {
+    await secureStorage.deleteAll();
+
+    if (!context.mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (_) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('HELP'),
+        backgroundColor: const Color(0xFF173B70),
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            tooltip: 'Sair',
+            onPressed: () => _sair(context),
+            icon: const Icon(Icons.logout),
+          ),
+        ],
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.check_circle_outline,
+                      color: Color(0xFF173B70),
+                      size: 56,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Login realizado!',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(nome, textAlign: TextAlign.center),
+                    const SizedBox(height: 4),
+                    Text(
+                      email,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.black54),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'A autenticação está funcionando. '
+                      'As demais telas serão integradas nas próximas etapas.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    OutlinedButton.icon(
+                      onPressed: () => _sair(context),
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Sair'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
